@@ -13,7 +13,7 @@ import type { Compiler, WebpackPluginInstance } from 'webpack';
 import { getWebpackPath } from '@module-federation/sdk/normalize-webpack-path';
 import CopyFederationPlugin from '../CopyFederationPlugin';
 import { exposeNextjsPages } from '../../loaders/nextPageMapLoader';
-import { retrieveDefaultShared, applyPathFixes } from './next-fragments';
+import { retrieveDefaultShared, applyPathFixes, hasAppDir } from './next-fragments';
 import { setOptions } from './set-options';
 import {
   validateCompilerOptions,
@@ -156,6 +156,15 @@ export class NextFederationPlugin {
     const defaultShared = this._extraOptions.skipSharingNextInternals
       ? {}
       : retrieveDefaultShared(isServer);
+
+    if (hasAppDir(compiler)) {
+      // These shared deps cause issues with the appDir. Any ideas around this?
+      delete defaultShared['react'];
+      delete defaultShared['react/'];
+      delete defaultShared['react-dom'];
+      delete defaultShared['react-dom/'];
+    }
+
     const noop = this.getNoopPath();
 
     const defaultExpose = this._extraOptions.skipSharingNextInternals
